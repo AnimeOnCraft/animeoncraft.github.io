@@ -4,43 +4,21 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- Liquid lens refraction map (Chromium only supports backdrop-filter:url()) ---------- */
-  (function lensMap() {
-    const w = 200, h = 60, c = document.createElement('canvas'); c.width = w; c.height = h;
-    const g = c.getContext('2d'), img = g.createImageData(w, h), r = h / 2;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      // distance to the pill edge, pushes pixels outward near the rim like a convex lens
-      const cx = Math.min(Math.max(x, r), w - r), dx = x - cx, dy = y - r;
-      const d = Math.hypot(dx, dy) || 1, edge = Math.max(0, 1 - (r - d) / (r * .55));
-      const k = edge * edge, i = (y * w + x) * 4;
-      img.data[i] = 128 - (dx / d) * 127 * k; img.data[i + 1] = 128 - (dy / d) * 127 * k; img.data[i + 2] = 128; img.data[i + 3] = 255;
-    }
-    g.putImageData(img, 0, 0);
-    const fe = $('#lens feImage'); if (fe) fe.setAttribute('href', c.toDataURL());
-    const chromium = !!window.chrome && CSS.supports('backdrop-filter', 'url(#lens)');
-    if (chromium) document.documentElement.classList.add('refract');
-  })();
-
   /* ---------- Tabs ---------- */
   const VIEWS = ['home', 'map', 'news'];
-  const lens = $('.tabs .lens');
-  function placeLens(el, target, squish) {
-    if (!el || !target) return;
-    el.style.width = target.offsetWidth + 'px';
-    el.style.transform = `translateX(${target.offsetLeft}px)`;
-    if (squish && !reduced) { el.classList.remove('squish'); void el.offsetWidth; el.classList.add('squish'); }
-  }
   let mapReady = false, refreshMap = () => {};
-  function show(view, squish = true) {
+  function show(view) {
     if (!VIEWS.includes(view)) view = 'home';
     $$('.view').forEach(v => { v.hidden = v.dataset.view !== view; });
     $$('.tabs a').forEach(a => { if (a.dataset.tab === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    placeLens(lens, $(`.tabs a[data-tab="${view}"]`), squish);
     if (view === 'map') { if (!mapReady) { mapReady = true; initMap(); } else refreshMap(); }
   }
   const fromHash = () => (location.hash || '#home').slice(1);
   addEventListener('hashchange', () => { show(fromHash()); scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); });
-  addEventListener('resize', () => { placeLens(lens, $('.tabs a[aria-current]'), false); });
+  $('.skip-link').addEventListener('click', event => {
+    event.preventDefault();
+    $('#content').focus();
+  });
 
   /* ---------- News ---------- */
   const NEWS = window.AOC_NEWS || [];
@@ -87,6 +65,9 @@
       layers[p.c].append(g);
       const pick = () => { card.hidden = false; $('.mc-type', card).textContent = p.t; $('.mc-name', card).textContent = p.n; $('.mc-xz', card).textContent = `X ${p.x}, Z ${p.z}`; };
       g.addEventListener('pointerenter', pick); g.addEventListener('focus', pick); g.addEventListener('click', e => { e.stopPropagation(); pick(); });
+      g.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
+      });
       return { p, g, halo, dot, label, big };
     });
     // Sora is drawn on top of its own ring; nudge the guild and the gate apart a little in screen space when zoomed out.
@@ -121,7 +102,7 @@
     refreshMap = () => { fit(); if (!view.w || view.w > home.w * 1.2) view = { ...home }; apply(); };
     frame.addEventListener('wheel', e => { e.preventDefault(); const b = frame.getBoundingClientRect(); zoom(Math.exp(e.deltaY * .0015), e.clientX - b.left, e.clientY - b.top); }, { passive: false });
     const ptrs = new Map(); let pinch = 0;
-    frame.addEventListener('pointerdown', e => { if (e.target.closest('.map-zoom')) return; frame.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); frame.classList.add('drag'); });
+    frame.addEventListener('pointerdown', e => { if (e.target.closest('.map-zoom')) return; e.target.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); frame.classList.add('drag'); });
     frame.addEventListener('pointermove', e => {
       if (!ptrs.has(e.pointerId)) return; const prev = ptrs.get(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       const b = frame.getBoundingClientRect(), u = view.w / b.width;
@@ -140,6 +121,5 @@
     const sora = pois.find(o => o.p.c === 'sora'); if (sora) { card.hidden = false; $('.mc-type', card).textContent = sora.p.t; $('.mc-name', card).textContent = sora.p.n; $('.mc-xz', card).textContent = 'X 0, Z 0'; }
   }
 
-  show(fromHash(), false);
-  document.fonts?.ready.then(() => { placeLens(lens, $('.tabs a[aria-current]'), false); });
+  show(fromHash());
 })();
