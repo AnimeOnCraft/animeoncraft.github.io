@@ -4,6 +4,38 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ---------- Launcher downloads ---------- */
+  async function updateDownloadCount() {
+    const count = $('#launcher-download-count');
+    const releases = 'https://api.github.com/repos/AnimeOnCraft/animeoncraft.github.io/releases';
+    const mirror = 'https://github.com/AnimeOnCraft/animeoncraft.github.io/releases/download/launcher-downloads/';
+    const installerName = /^AnimeOnCraft_\d+\.\d+\.\d+_x64-setup\.exe$/;
+    const response = await fetch(releases);
+    if (!response.ok) return;
+
+    const published = await response.json();
+    const release = published.find(item => item.tag_name === 'launcher-downloads');
+    if (!Array.isArray(release?.assets)) return;
+
+    const installers = new Map();
+    for (const { name, state, download_count: downloads } of release.assets) {
+      if (state === 'uploaded' && installerName.test(name) && Number.isSafeInteger(downloads) && downloads >= 0) {
+        installers.set(name, downloads);
+      }
+    }
+    if (!installers.size) return;
+
+    const total = [...installers.values()].reduce((sum, downloads) => sum + downloads, Number(count.dataset.baseline));
+    count.textContent = `≈${total.toLocaleString('ru-RU')}`;
+    for (const link of $$('.mini-download, .hero-actions .cta')) {
+      const name = new URL(link.href).pathname.split('/').pop();
+      if (installers.has(name)) link.href = mirror + name;
+    }
+  }
+  updateDownloadCount().catch(() => {
+    // Keep the estimate and the direct links when GitHub is unavailable.
+  });
+
   /* ---------- Tabs ---------- */
   const VIEWS = ['home', 'map', 'news'];
   let mapReady = false, refreshMap = () => {};
