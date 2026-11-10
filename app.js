@@ -38,7 +38,10 @@
     li.append(b); list.append(li);
   });
   openNews(0);
-  if (NEWS[0]) $('#teaser-news .t-title').textContent = `${NEWS[0].v}: ${NEWS[0].title}`;
+  if (NEWS[0]) {
+    const { v, title } = NEWS[0];
+    $('#teaser-news .t-title').textContent = title.includes(v) ? title : `${v}: ${title}`;
+  }
 
   /* ---------- Map ---------- */
   function initMap() {
