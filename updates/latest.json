@@ -1,0 +1,10 @@
+{
+  "version": "0.9.2",
+  "pub_date": "2026-11-26T19:18:19.235Z",
+  "platforms": {
+    "windows-x86_64-nsis": {
+      "url": "https://animeoncraft.github.io/updates/0.9.2/AnimeOnCraft_0.9.2_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRMndtK2JUUlR1R0dlVjNRenBMNDRncEQwRjZLT1ZETlNhQ01hblBENmJaeXU2NXRucnRxS205QXhSeEVSZzVQbjgxQ21xRnZvOERydWgzb3IyYlZydmduWTlmRTNOV3c4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NzIwNjk5CWZpbGU6QW5pbWVPbkNyYWZ0XzAuOS4yX3g2NC1zZXR1cC5leGUJdmVyc2lvbjowLjkuMgpVelNRRHBPNStENC9JbGV0bHJiWkpYTGJMN0tPM1RVcnlFZGR3RU9VV1grQVR3bSt2K29hOHlGZHNZbmVudUJockRiUHVISEk0K0MybGp0ZVFCQ0FBUT09Cg=="
+    }
+  }
+}
